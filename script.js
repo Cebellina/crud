@@ -13,7 +13,7 @@ const countryInput = document.getElementById("country");
 const priceInput = document.getElementById("price");
 const hotelSelect = document.getElementById("hotelSelect");
 const filterHotel = document.getElementById("filterHotel");
-const API = "http://localhost:3000";
+const API = "https://myjsonserver.typicode.com/cebellina/crud-api";
 let hotelCache = [];
 
 async function apiFetch(endpoint, options = {}) {
