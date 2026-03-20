@@ -1,4 +1,4 @@
-const API = "https://crud-api-uvfv.onrender.com/";
+const API = "https://crud-api-uvfv.onrender.com";
 
 const modal = document.getElementById("modal");
 const closeModal = document.getElementById("closeModal");
@@ -22,19 +22,30 @@ let hotelCache = [];
 async function apiFetch(endpoint, options = {}) {
   try {
     const res = await fetch(`${API}${endpoint}`, options);
-    if (!res.ok) throw new Error(`Fel ${res.status}: ${res.statusText}`);
-    if (res.status !== 204) return await res.json();
-    return null;
+
+    if (!res.ok) {
+      throw new Error(`Fel ${res.status}: ${res.statusText}`);
+    }
+
+    if (res.status === 204) return null;
+
+    return await res.json();
   } catch (err) {
+    console.error(err);
     errorMsg.textContent = `Fel vid API-anrop: ${err.message}`;
     setTimeout(() => (errorMsg.textContent = ""), 5000);
-    throw err;
+    return null;
   }
 }
 
 async function loadHotels() {
   if (hotelCache.length) return hotelCache;
-  hotelCache = await apiFetch("/hotels");
+
+  const data = await apiFetch("/hotels");
+  if (!data) return [];
+
+  hotelCache = data;
+
   hotelSelect.innerHTML = "";
   filterHotel.innerHTML = "";
 
@@ -50,12 +61,12 @@ async function loadHotels() {
 
   hotelCache.forEach(h => {
     const option1 = document.createElement("option");
-    option1.value = h.id;
+    option1.value = String(h.id);
     option1.textContent = `${h.name} (${h.stars}★)`;
     hotelSelect.appendChild(option1);
 
     const option2 = document.createElement("option");
-    option2.value = h.id;
+    option2.value = String(h.id);
     option2.textContent = `${h.name} (${h.stars}★)`;
     filterHotel.appendChild(option2);
   });
@@ -64,70 +75,90 @@ async function loadHotels() {
 }
 
 async function getDestinations() {
-  const [destinations, hotels] = await Promise.all([apiFetch("/destinations"), loadHotels()]);
+  try {
+    const destinations = await apiFetch("/destinations");
+    const hotels = await loadHotels();
 
-  const filterId = filterHotel.value;
-  const filtered = filterId ? destinations.filter(d => d.hotelId === filterId) : destinations;
+    if (!destinations) return;
 
-  container.innerHTML = "";
+    const filterId = filterHotel.value;
 
-  if (!filtered.length) {
-    const msg = document.createElement("div");
-    msg.className = "no-results";
-    msg.textContent = "Inga resor matchar valet.";
-    container.appendChild(msg);
-    return;
+    const filtered = filterId
+      ? destinations.filter(d => String(d.hotelId) === String(filterId))
+      : destinations;
+
+    container.innerHTML = "";
+
+    if (!filtered.length) {
+      const msg = document.createElement("div");
+      msg.className = "no-results";
+      msg.textContent = "Inga resor matchar valet.";
+      container.appendChild(msg);
+      return;
+    }
+
+    filtered.forEach(dest => {
+      const hotel = hotels.find(h => String(h.id) === String(dest.hotelId));
+
+      const card = document.createElement("div");
+      card.classList.add("card");
+
+      const h3 = document.createElement("h3");
+      h3.textContent = dest.name;
+
+      const pCountry = document.createElement("p");
+      pCountry.textContent = dest.country;
+
+      const pPrice = document.createElement("p");
+      pPrice.textContent = `${dest.price} kr`;
+
+      const pHotel = document.createElement("p");
+      pHotel.textContent = hotel
+        ? `Hotell: ${hotel.name} (${hotel.stars}★)`
+        : "Hotell: Okänt";
+
+      const editBtn = document.createElement("button");
+      editBtn.textContent = "Redigera";
+      editBtn.onclick = () => editDestination(dest.id);
+
+      const viewBtn = document.createElement("button");
+      viewBtn.textContent = "Visa";
+      viewBtn.onclick = () => viewDestination(dest.id);
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.textContent = "Ta bort";
+      deleteBtn.onclick = () => deleteDestination(dest.id);
+
+      card.append(h3, pCountry, pPrice, pHotel, editBtn, viewBtn, deleteBtn);
+      container.appendChild(card);
+    });
+  } catch (err) {
+    console.error(err);
   }
-
-  filtered.forEach(dest => {
-    const hotel = hotels.find(h => h.id === dest.hotelId);
-
-    const card = document.createElement("div");
-    card.classList.add("card");
-
-    const h3 = document.createElement("h3");
-    h3.textContent = dest.name;
-
-    const pCountry = document.createElement("p");
-    pCountry.textContent = dest.country;
-
-    const pPrice = document.createElement("p");
-    pPrice.textContent = `${dest.price} kr`;
-
-    const pHotel = document.createElement("p");
-    pHotel.textContent = hotel ? `Hotell: ${hotel.name} (${hotel.stars}★)` : "Hotell: Okänt";
-
-    const editBtn = document.createElement("button");
-    editBtn.textContent = "Redigera";
-    editBtn.addEventListener("click", () => editDestination(dest.id));
-
-    const viewBtn = document.createElement("button");
-    viewBtn.textContent = "Visa";
-    viewBtn.addEventListener("click", () => viewDestination(dest.id));
-
-    const deleteBtn = document.createElement("button");
-    deleteBtn.textContent = "Ta bort";
-    deleteBtn.addEventListener("click", () => deleteDestination(dest.id));
-
-    card.append(h3, pCountry, pPrice, pHotel, editBtn, viewBtn, deleteBtn);
-    container.appendChild(card);
-  });
 }
 
 async function viewDestination(id) {
-  const [dest, hotels] = await Promise.all([apiFetch(`/destinations/${id}`), loadHotels()]);
-  const hotel = hotels.find(h => h.id === dest.hotelId);
+  const dest = await apiFetch(`/destinations/${id}`);
+  const hotels = await loadHotels();
+
+  if (!dest) return;
+
+  const hotel = hotels.find(h => String(h.id) === String(dest.hotelId));
 
   modalTitle.textContent = dest.name;
   modalCountry.textContent = `Land: ${dest.country}`;
   modalPrice.textContent = `Pris: ${dest.price} kr`;
-  modalHotel.textContent = hotel ? `Hotell: ${hotel.name} (${hotel.stars}★)` : "Hotell: Okänt";
+  modalHotel.textContent = hotel
+    ? `Hotell: ${hotel.name} (${hotel.stars}★)`
+    : "Hotell: Okänt";
 
   modal.classList.remove("hidden");
 }
 
-closeModal.addEventListener("click", () => modal.classList.add("hidden"));
-modal.addEventListener("click", e => { if (e.target === modal) modal.classList.add("hidden"); });
+closeModal.onclick = () => modal.classList.add("hidden");
+modal.onclick = e => {
+  if (e.target === modal) modal.classList.add("hidden");
+};
 
 form.addEventListener("submit", async e => {
   e.preventDefault();
@@ -136,7 +167,7 @@ form.addEventListener("submit", async e => {
     name: nameInput.value.trim(),
     country: countryInput.value.trim(),
     price: Number(priceInput.value),
-    hotelId: hotelSelect.value
+    hotelId: String(hotelSelect.value)
   };
 
   if (!destination.name || !destination.country || isNaN(destination.price) || !destination.hotelId) {
@@ -152,7 +183,6 @@ form.addEventListener("submit", async e => {
       body: JSON.stringify(destination)
     });
   } else {
-    destination.id = Date.now().toString();
     await apiFetch("/destinations", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -168,20 +198,27 @@ form.addEventListener("submit", async e => {
 
 async function editDestination(id) {
   const data = await apiFetch(`/destinations/${id}`);
+  if (!data) return;
+
   idInput.value = data.id;
   nameInput.value = data.name;
   countryInput.value = data.country;
   priceInput.value = data.price;
-  hotelSelect.value = data.hotelId;
+  hotelSelect.value = String(data.hotelId);
+
   form.querySelector("button").textContent = "Uppdatera resa";
 }
 
 async function deleteDestination(id) {
   if (!confirm("Är du säker på att du vill ta bort resan?")) return;
+
   await apiFetch(`/destinations/${id}`, { method: "DELETE" });
   getDestinations();
 }
 
 filterHotel.addEventListener("change", getDestinations);
 
-loadHotels().then(() => getDestinations());
+(async function init() {
+  await loadHotels();
+  await getDestinations();
+})();
