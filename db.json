@@ -1,0 +1,58 @@
+{
+  "destinations": [
+    {
+      "id": "1",
+      "name": "Mallorca",
+      "country": "Spanien",
+      "price": 4999,
+      "hotelId": "1"
+    },
+    {
+      "id": "2",
+      "name": "Santorini",
+      "country": "Grekland",
+      "price": 6999,
+      "hotelId": "2"
+    },
+    {
+      "id": "3",
+      "name": "Barcelona",
+      "country": "Spanien",
+      "price": 5999,
+      "hotelId": "3"
+    },
+    {
+      "id": "4",
+      "name": "Kreta",
+      "country": "Grekland",
+      "price": 5499,
+      "hotelId": "4"
+    }
+  ],
+  "hotels": [
+    {
+      "id": "1",
+      "name": "Sunshine Resort",
+      "stars": 4,
+      "location": "Mallorca"
+    },
+    {
+      "id": "2",
+      "name": "Ocean Breeze Hotel",
+      "stars": 5,
+      "location": "Santorini"
+    },
+    {
+      "id": "3",
+      "name": "City Central Hotel",
+      "stars": 3,
+      "location": "Barcelona"
+    },
+    {
+      "id": "4",
+      "name": "Sunny Beach Hotel",
+      "stars": 4,
+      "location": "Kreta"
+    }
+  ]
+}

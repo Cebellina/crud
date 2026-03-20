@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
+  <title>Emmas CRUD</title>
+</head>
+<body>
+
+<h1>Travel Destinations</h1>
+
+<p id="error" class="error"></p>
+
+<section>
+  <label for="filterHotel">Filtrera på hotell</label>
+  <select id="filterHotel">
+    <option value="">Alla hotell</option>
+  </select>
+</section>
+
+<section>
+  <div id="destinations" class="grid"></div>
+</section>
+
+<section>
+  <h2>Lägg till / Uppdatera resa</h2>
+  <form id="form" autocomplete="off">
+    <input type="hidden" id="id">
+    <label for="name">Resmål</label>
+    <input type="text" id="name" placeholder="t.ex. Mallorca" required autocomplete="off">
+    <label for="country">Land</label>
+    <input type="text" id="country" placeholder="t.ex. Spanien" required autocomplete="off">
+    <label for="price">Pris</label>
+    <input type="number" id="price" placeholder="t.ex. 4999 kr" required autocomplete="off">
+    <label for="hotelSelect">Välj hotell</label>
+    <select id="hotelSelect" required>
+      <option value="">Välj hotell</option>
+    </select>
+    <button type="submit">Lägg till resa</button>
+  </form>
+</section>
+
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <button id="closeModal">✕</button>
+    <h3 id="modalTitle"></h3>
+    <p id="modalCountry"></p>
+    <p id="modalPrice"></p>
+    <p id="modalHotel"></p>
+  </div>
+</div>
+
+</body>
+</html>
