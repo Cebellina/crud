@@ -1,4 +1,4 @@
-const API = "https://crud-api.onrender.com";
+const API = "https://crud-api-uvfv.onrender.com/";
 
 const modal = document.getElementById("modal");
 const closeModal = document.getElementById("closeModal");
